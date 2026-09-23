@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JC Online Store – Bestelcalculator</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f6f8;color:#171717}
+.wrap{max-width:720px;margin:auto;padding:20px}.brand{text-align:center;margin-bottom:18px}
+.brand h1{margin:0;font-size:25px}.brand p{margin:6px 0;color:#666}
+.card{background:#fff;border-radius:16px;padding:18px;margin:12px 0;box-shadow:0 2px 10px #0000000d}
+h2{font-size:17px;margin:0 0 14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+input,select{width:100%;padding:12px;border:1px solid #d7d7d7;border-radius:9px;font-size:16px;background:#fff}
+.note{font-size:12px;color:#666;margin-top:10px}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:10px}.result{background:#f7f7f7;border-radius:11px;padding:13px}
+.result span{font-size:12px;color:#666}.result strong{display:block;font-size:19px;margin-top:4px}
+.final{background:#eaf2ff;border:2px solid #2563eb}.final strong{font-size:27px}
+button{width:100%;padding:13px;border:0;border-radius:9px;font-size:16px;font-weight:700;cursor:pointer}
+.primary{background:#2563eb;color:white}.secondary{background:#eee;color:#222;margin-top:9px}
+.err{color:#b00020;font-size:13px;margin-top:8px;min-height:18px}
+@media(max-width:560px){.grid,.results{grid-template-columns:1fr}.wrap{padding:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="brand"><h1>JC Online Store</h1><p>Bestelcalculator</p></div>
+
+<div class="card">
+<h2>1. Product</h2>
+<div class="grid">
+<div><label>Aankoopprijs</label><input id="price" type="number" min="0" step="0.01" value="100"></div>
+<div><label>Valuta</label><select id="currency"><option>USD</option><option>EUR</option><option>SRD</option></select></div>
+<div><label>Koers naar SRD</label><input id="rate" type="number" min="0" step="0.01" value="38"></div>
+<div><label>Gewicht (lb)</label><input id="weight" type="number" min="0" step="0.01" value="1"></div>
+</div>
+</div>
+
+<div class="card">
+<h2>2. Roopcom & overige kosten</h2>
+<div class="grid">
+<div><label>Roopcom tarief (USD/lb)</label><input id="roopRate" type="number" min="0" step="0.01" value="4.50"></div>
+<div><label>Bank-/betaalkosten (SRD)</label><input id="bank" type="number" min="0" step="0.01" value="0"></div>
+<div><label>Overige kosten (SRD)</label><input id="other" type="number" min="0" step="0.01" value="0"></div>
+<div><label>Lokale levering (SRD)</label><input id="delivery" type="number" min="0" step="0.01" value="0"></div>
+</div>
+<div class="note">Roopcom wordt automatisch berekend als gewicht × US$4,50 per lb.</div>
+</div>
+
+<div class="card">
+<h2>3. Jouw winst</h2>
+<div class="grid">
+<div><label>Winstpercentage (%)</label><input id="margin" type="number" min="0" step="0.1" value="20"></div>
+<div><label>Minimale winst per bestelling (SRD)</label><input id="minProfit" type="number" min="0" step="1" value="500"></div>
+<div><label>Afronden op</label><select id="round"><option value="1">SRD 1</option><option value="5">SRD 5</option><option value="10" selected>SRD 10</option><option value="50">SRD 50</option><option value="100">SRD 100</option></select></div>
+</div>
+</div>
+
+<div class="card">
+<h2>Resultaat</h2>
+<div class="results">
+<div class="result"><span>Productkosten</span><strong id="productOut">SRD 0</strong></div>
+<div class="result"><span>Roopcom</span><strong id="roopOut">SRD 0</strong></div>
+<div class="result"><span>Totale eigen kosten</span><strong id="costOut">SRD 0</strong></div>
+<div class="result"><span>Jouw winst</span><strong id="profitOut">SRD 0</strong></div>
+<div class="result final" style="grid-column:1/-1"><span>Verkoopprijs klant</span><strong id="saleOut">SRD 0</strong></div>
+</div>
+<div class="err" id="error"></div>
+</div>
+
+<div class="card">
+<button class="primary" id="copy">Kopieer bestellingsoverzicht</button>
+<button class="secondary" id="reset">Reset calculator</button>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const ids=["price","currency","rate","weight","roopRate","bank","other","delivery","margin","minProfit","round"];
+const n=id=>Math.max(0,Number($(id).value)||0);
+const money=v=>"SRD "+Math.round(v).toLocaleString("nl-NL");
+
+function calculate(){
+ const price=n("price"), rate=n("rate"), weight=n("weight");
+ const product=$("currency").value==="SRD"?price:price*rate;
+ const roop=weight*n("roopRate")*rate;
+ const extras=n("bank")+n("other")+n("delivery");
+ const cost=product+roop+extras;
+ const percentageProfit=cost*(n("margin")/100);
+ const profit=Math.max(percentageProfit,n("minProfit"));
+ const rawSale=cost+profit;
+ const step=Math.max(1,n("round"));
+ const sale=Math.ceil(rawSale/step)*step;
+
+ $("productOut").textContent=money(product);
+ $("roopOut").textContent=money(roop);
+ $("costOut").textContent=money(cost);
+ $("profitOut").textContent=money(sale-cost);
+ $("saleOut").textContent=money(sale);
+ $("error").textContent=(rate<=0 && $("currency").value!=="SRD")?"Vul een geldige koers in.":"";
+ return {product,roop,cost,profit,sale};
+}
+ids.forEach(id=>$(id).addEventListener("input",calculate));
+$("currency").addEventListener("change",calculate);
+
+$("copy").addEventListener("click",async()=>{
+ const r=calculate();
+ const text=`JC Online Store – Bestellingsoverzicht
+Aankoopprijs: ${n("price").toFixed(2)} ${$("currency").value}
+Gewicht: ${n("weight")} lb
+Roopcom: ${money(r.roop)}
+Totale eigen kosten: ${money(r.cost)}
+Winst: ${money(r.profit)}
+Verkoopprijs klant: ${money(r.sale)}`;
+ try{await navigator.clipboard.writeText(text);$("copy").textContent="Gekopieerd ✓";setTimeout(()=>$("copy").textContent="Kopieer bestellingsoverzicht",1500)}
+ catch(e){alert(text)}
+});
+
+$("reset").addEventListener("click",()=>{
+ $("price").value=100;$("currency").value="USD";$("rate").value=38;$("weight").value=1;
+ $("roopRate").value=4.50;$("bank").value=0;$("other").value=0;$("delivery").value=0;
+ $("margin").value=20;$("minProfit").value=500;$("round").value=10;calculate();
+});
+calculate();
+</script>
+</body>
+</html>
