@@ -5,7 +5,6 @@
 <link rel="icon" type="image/jpeg" href="JC store.jpeg">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>JC Online Store – Bestelcalculator</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#171717}
@@ -32,27 +31,6 @@ input,select{width:100%;padding:11px;border:1px solid #d4d8dd;border-radius:9px;
 </style>
 </head>
 <body>
-
-<div id="loginScreen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#f4f6f8">
-  <div style="width:100%;max-width:420px;background:white;border-radius:18px;padding:30px;box-shadow:0 5px 25px #00000012">
-    <h1 style="text-align:center;margin-top:0">🔐 JC Online Store</h1>
-    <p style="text-align:center;color:#666">Beveiligde toegang</p>
-
-    <label>E-mailadres</label>
-    <input id="loginEmail" type="email" placeholder="Jouw e-mailadres">
-
-    <label style="display:block;margin-top:12px">Wachtwoord</label>
-    <input id="loginPassword" type="password" placeholder="Jouw wachtwoord">
-
-    <button id="loginButton" class="primary" style="width:100%;margin-top:16px">
-      Inloggen
-    </button>
-
-    <p id="loginError" style="color:#a40000;text-align:center"></p>
-  </div>
-</div>
-
-<div id="app" style="display:none">
 <div class="wrap">
 <div class="brand"><h1>JC Online Store</h1><p>Bestel-, Kosten- & Winstsysteem</p></div>
 
@@ -375,68 +353,5 @@ document.querySelectorAll(".tab").forEach(btn=>btn.onclick=()=>{
 
 renderCart();calculate();renderOrders();renderDashboard();
 </script>
-
-<script>
-const SUPABASE_URL = "https://xubamezfeohzqrsxoavb.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY = "JOUW_PUBLISHABLE_KEY_HIER";
-
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
-
-const loginScreen = document.getElementById("loginScreen");
-const app = document.getElementById("app");
-const loginButton = document.getElementById("loginButton");
-const loginError = document.getElementById("loginError");
-
-loginButton.addEventListener("click", async () => {
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value;
-
-  loginError.textContent = "";
-
-  if (!email || !password) {
-    loginError.textContent = "Vul je e-mailadres en wachtwoord in.";
-    return;
-  }
-
-  loginButton.disabled = true;
-  loginButton.textContent = "Inloggen...";
-
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: email,
-    password: password
-  });
-
-  loginButton.disabled = false;
-  loginButton.textContent = "Inloggen";
-
-  if (error) {
-    loginError.textContent = "E-mailadres of wachtwoord is niet juist.";
-    return;
-  }
-
-  loginScreen.style.display = "none";
-  app.style.display = "block";
-});
-
-async function checkLogin() {
-  const { data } = await supabaseClient.auth.getSession();
-
-  if (data.session) {
-    loginScreen.style.display = "none";
-    app.style.display = "block";
-  } else {
-    loginScreen.style.display = "flex";
-    app.style.display = "none";
-  }
-}
-
-checkLogin();
-</script>
-
-</div>
 </body>
 </html>
